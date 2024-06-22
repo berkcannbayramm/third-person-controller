@@ -5,24 +5,22 @@ public class JumpState : ICharacterState
     public void EnterState(ThirdPersonMovement character)
     {
         character.HandleJump();
+        character.InputManager.JumpInput = false;
     }
 
     public void UpdateState(ThirdPersonMovement character)
     {
         character.HandleMovement();
 
-        if (character.isGrounded)
+        if (character.IsGrounded)
         {
-            float horizontal = Input.GetAxisRaw("Horizontal");
-            float vertical = Input.GetAxisRaw("Vertical");
-
-            if (horizontal != 0 || vertical != 0)
+            if (!character.InputManager.IsStopped())
             {
-                character.TransitionToState(character.walkState);
+                character.TransitionToState(character.WalkState);
             }
             else
             {
-                character.TransitionToState(character.idleState);
+                character.TransitionToState(character.IdleState);
             }
         }
     }

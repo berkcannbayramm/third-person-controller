@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.InputSystem;
 public class ThirdPersonMovement : MonoBehaviour
 {
     [Header("Components")]
@@ -10,51 +11,60 @@ public class ThirdPersonMovement : MonoBehaviour
     [SerializeField] float jumpSpeed = 8.0f;
     [SerializeField] float turnSmoothTime = 0.1f;
     [SerializeField] float gravity = -9.81f;
-    public bool isGrounded { get; private set; }
-    public readonly WalkState walkState = new WalkState();
-    public readonly JumpState jumpState = new JumpState();
-    public readonly IdleState idleState = new IdleState();
+    public bool IsGrounded { get; private set; }
+    public InputManager InputManager { get; set; }
 
-    float turnSmoothVelocity;
-    Vector3 velocity;
+    public readonly WalkState WalkState = new WalkState();
+    public readonly JumpState JumpState = new JumpState();
+    public readonly IdleState IdleState = new IdleState();
 
-    ICharacterState currentState;
+    float _turnSmoothVelocity;
+    Vector3 _velocity;
+    ICharacterState _currentState;
+
+    private void Awake()
+    {
+        InputManager = GetComponent<InputManager>();
+    }
+
     void Start()
     {
-        TransitionToState(idleState);
+        TransitionToState(IdleState);
     }
 
     void Update()
     {
+        InputManager.HandleAllInputs();
+
         HandleGroundCheck();
-        currentState.UpdateState(this);
-        controller.Move(velocity * Time.deltaTime);
+        _currentState.UpdateState(this);
+        controller.Move(_velocity * Time.deltaTime);
     }
 
     public void TransitionToState(ICharacterState newState)
     {
-        currentState?.ExitState(this);
-        currentState = newState;
-        currentState.EnterState(this);
+        _currentState?.ExitState(this);
+        _currentState = newState;
+        _currentState.EnterState(this);
     }
 
     public void HandleGroundCheck()
     {
-        isGrounded = controller.isGrounded;
-        if (isGrounded && velocity.y < 0)
+        IsGrounded = controller.isGrounded;
+        if (IsGrounded && _velocity.y < 0)
         {
-            velocity.y = -2f;
+            _velocity.y = -2f;
         }
-        if (!isGrounded)
+        if (!IsGrounded)
         {
-            velocity.y += gravity * Time.deltaTime;
+            _velocity.y += gravity * Time.deltaTime;
         }
     }
 
     public void HandleMovement()
     {
-        float horizontal = Input.GetAxisRaw("Horizontal");
-        float vertical = Input.GetAxisRaw("Vertical");
+        float horizontal = InputManager.HorizontalInput;
+        float vertical = InputManager.VerticalInput;
         Vector3 direction = new Vector3(horizontal, 0f, vertical).normalized;
 
         if (direction.magnitude >= 0.1f)
@@ -68,7 +78,7 @@ public class ThirdPersonMovement : MonoBehaviour
     }
     public void HandleJump()
     {
-        velocity.y = jumpSpeed;
+        _velocity.y = jumpSpeed;
     }
 
     public Vector3 CalculateMoveDirection(float horizontal, float vertical)
@@ -87,7 +97,7 @@ public class ThirdPersonMovement : MonoBehaviour
     public void RotateCharacter(Vector3 moveDirection)
     {
         float targetAngle = Mathf.Atan2(moveDirection.x, moveDirection.z) * Mathf.Rad2Deg;
-        float angle = Mathf.SmoothDampAngle(transform.eulerAngles.y, targetAngle, ref turnSmoothVelocity, turnSmoothTime);
+        float angle = Mathf.SmoothDampAngle(transform.eulerAngles.y, targetAngle, ref _turnSmoothVelocity, turnSmoothTime);
         transform.rotation = Quaternion.Euler(0f, angle, 0f);
     }
 }

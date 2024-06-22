@@ -10,17 +10,14 @@ public class WalkState : ICharacterState
     {
         character.HandleMovement();
 
-        if (Input.GetKey(KeyCode.Space))
+        if (character.InputManager.JumpInput)
         {
-            character.TransitionToState(character.jumpState);
+            character.TransitionToState(character.JumpState);
         }
 
-        float horizontal = Input.GetAxisRaw("Horizontal");
-        float vertical = Input.GetAxisRaw("Vertical");
-
-        if (horizontal == 0 && vertical == 0 && character.isGrounded)
+        if (character.InputManager.IsStopped() && character.IsGrounded)
         {
-            character.TransitionToState(character.idleState);
+            character.TransitionToState(character.IdleState);
         }
     }
 

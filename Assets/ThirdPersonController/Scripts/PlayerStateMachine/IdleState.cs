@@ -8,17 +8,14 @@ public class IdleState : ICharacterState
 
     public void UpdateState(ThirdPersonMovement character)
     {
-        float horizontal = Input.GetAxisRaw("Horizontal");
-        float vertical = Input.GetAxisRaw("Vertical");
-
-        if (horizontal != 0 || vertical != 0)
+        if (!character.InputManager.IsStopped())
         {
-            character.TransitionToState(character.walkState);
+            character.TransitionToState(character.WalkState);
         }
 
-        if (Input.GetKey(KeyCode.Space))
+        if (character.InputManager.JumpInput)
         {
-            character.TransitionToState(character.jumpState);
+            character.TransitionToState(character.JumpState);
         }
     }
 
